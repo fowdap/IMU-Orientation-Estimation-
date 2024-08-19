@@ -7,6 +7,7 @@ import math
 # 1. Set up the ZMQ context and subscriber socket
 context = zmq.Context()
 subscriber = context.socket(zmq.SUB)
+subscriber.setsockopt(zmq.CONFLATE, 1)
 subscriber.connect("tcp://localhost:5555")  # Connect to the publisher
 subscriber.setsockopt_string(zmq.SUBSCRIBE, "")  # Subscribe to all messages
 
@@ -25,10 +26,13 @@ yaw = 0.0
 def calculate_rpy(gyro_x, gyro_y, gyro_z, dt):
     global roll, pitch, yaw
 
+    wx = gyro_z
+    wy = -gyro_y
+    wz = -gyro_x
     # Update roll, pitch, and yaw using gyroscope data
-    roll += gyro_x * dt
-    pitch += gyro_y * dt
-    yaw += gyro_z * dt
+    roll += wx * dt
+    pitch += wy * dt
+    yaw += wz * dt
 
     # Convert radians to degrees
     roll_deg = math.degrees(roll)

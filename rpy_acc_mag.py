@@ -6,13 +6,24 @@ import matplotlib.animation as animation
 # Initialize ZMQ context and subscribe to the data
 context = zmq.Context()
 subscriber = context.socket(zmq.SUB)
+subscriber.setsockopt(zmq.CONFLATE, 1)
 subscriber.connect("tcp://localhost:5555")  # Connect to the publisher's address
 subscriber.setsockopt_string(zmq.SUBSCRIBE, '')  # Subscribe to all messages
 
 # Functions to calculate roll, pitch, and yaw
 def calculate_roll_pitch_yaw(accelero, mag):
     ax, ay, az = accelero
+    # # print (axi, ayi, azi)
+    # ax = azi
+    # ay = -ayi
+    # az = -axi
+
     mx, my, mz = mag
+    # mx = mzi
+    # my = -myi
+    # mz = -mxi
+    # # print(mx, my, mz)
+    # print(ax, ay, az)
 
     # Roll and pitch from accelerometer
     roll = np.arctan2(ay, az) * 180 / np.pi
@@ -21,6 +32,7 @@ def calculate_roll_pitch_yaw(accelero, mag):
     # Yaw from magnetometer (and considering pitch and roll for tilt compensation)
     yaw = np.arctan2(my * np.cos(roll) - mz * np.sin(roll),
                      mx * np.cos(pitch) + my * np.sin(roll) * np.sin(pitch) + mz * np.cos(roll) * np.sin(pitch)) * 180 / np.pi
+    print (roll, pitch, yaw)
 
     return roll, pitch, yaw
 

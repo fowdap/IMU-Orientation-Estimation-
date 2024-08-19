@@ -6,6 +6,8 @@ import depthai as dai
 def main():
     context = zmq.Context()
     publisher = context.socket(zmq.PUB)
+    publisher.setsockopt(zmq.CONFLATE, 1)
+
     
     try:
         publisher.bind("tcp://*:5555")
@@ -46,14 +48,35 @@ def main():
 
                         gyroTs = gyroValues.getTimestampDevice().total_seconds() * 1000
                         gyroTs = round(gyroTs, 3)
-
                         accelero = [acceleroValues.x, acceleroValues.y, acceleroValues.z]
                         gyro = [gyroValues.x, gyroValues.y, gyroValues.z]
                         mag = [magValues.x, magValues.y, magValues.z]
 
-                        data_to_publish = f"{gyroTs},{accelero[0]},{accelero[1]},{accelero[2]},{gyro[0]},{gyro[1]},{gyro[2]},{mag[0]},{mag[1]},{mag[2]}"
+
+                        # changing coordinate axis
+
+                        axi, ayi, azi = accelero
+                        ax = azi
+                        ay = -ayi
+                        az = -axi
+                        accelero_final = [ax, ay, az]
+
+                        mxi, myi, mzi = mag
+                        mx = mzi
+                        my = -myi
+                        mz = -mxi
+                        mag_final = [mx, my, mz]
+
+                        wxi, wyi, wzi = gyro
+                        wx = wzi
+                        wy = -wyi
+                        wz = -wxi
+                        gyro_final = [wx, wy, wz]
+                       
+
+                        data_to_publish = f"{gyroTs},{accelero_final[0]},{accelero_final[1]},{accelero_final[2]},{gyro_final[0]},{gyro_final[1]},{gyro_final[2]},{mag_final[0]},{mag_final[1]},{mag_final[2]}"
                         publisher.send_string(data_to_publish)
-                        print("data sent")
+                        # print("data sent")
 
                 except Exception as e:
                     print(f"Error occurred while processing IMU data: {e}")
